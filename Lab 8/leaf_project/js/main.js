@@ -1,5 +1,4 @@
 d3.json('data/data.json').then(function(data) {
-	// Clean and format data
 	const formattedData = data.map((yearEntry, index) => {
 		return {
 			year: yearEntry.year,
@@ -17,12 +16,10 @@ d3.json('data/data.json').then(function(data) {
 		};
 	});
 
-	// Extract all continents for color scale and filter
 	const allContinents = Array.from(new Set(
 		formattedData.flatMap(d => d.countries.map(c => c.continent))
 	)).sort();
 
-	// Populate continent filter dropdown
 	const continentFilter = d3.select('#continentFilter');
 	allContinents.forEach(continent => {
 		continentFilter.append('option')
@@ -30,7 +27,6 @@ d3.json('data/data.json').then(function(data) {
 			.text(continent);
 	});
 
-	// Setup SVG dimensions
 	const margin = { top: 50, right: 150, bottom: 80, left: 100 };
 	const width = 800 - margin.left - margin.right;
 	const height = 500 - margin.top - margin.bottom;
@@ -42,7 +38,6 @@ d3.json('data/data.json').then(function(data) {
 		.append('g')
 		.attr('transform', `translate(${margin.left}, ${margin.top})`);
 
-	// Create scales
 	const xScale = d3.scaleLog()
 		.domain([142, 150000])
 		.range([0, width]);
@@ -59,14 +54,12 @@ d3.json('data/data.json').then(function(data) {
 		.domain(allContinents)
 		.range(d3.schemePastel1);
 
-	// Create axes
 	const xAxis = d3.axisBottom(xScale)
 		.tickValues([400, 4000, 40000])
 		.tickFormat(d3.format("$,.0f"));
 
 	const yAxis = d3.axisLeft(yScale);
 
-	// Append axes
 	svg.append('g')
 		.attr('class', 'x-axis')
 		.attr('transform', `translate(0, ${height})`)
@@ -76,7 +69,6 @@ d3.json('data/data.json').then(function(data) {
 		.attr('class', 'y-axis')
 		.call(yAxis);
 
-	// Add axis labels
 	svg.append('text')
 		.attr('class', 'axis-label x-axis-label')
 		.attr('x', width / 2)
@@ -92,14 +84,12 @@ d3.json('data/data.json').then(function(data) {
 		.style('text-anchor', 'middle')
 		.text('Life Expectancy');
 
-	// Year label
 	const yearLabel = svg.append('text')
 		.attr('class', 'year-label')
 		.attr('x', width - 10)
 		.attr('y', -10)
 		.style('text-anchor', 'end');
 
-	// Create legend
 	const legend = svg.append('g')
 		.attr('class', 'legend')
 		.attr('transform', `translate(${width + 20}, 20)`);
@@ -122,26 +112,21 @@ d3.json('data/data.json').then(function(data) {
 		.text(d => d)
 		.style('font-size', '12px');
 
-	// Tooltip
 	const tooltip = d3.select('#tooltip');
 
-	// Animation control variables
 	let currentIndex = 0;
 	let isPlaying = false;
 	let animationInterval;
 	let filteredData = formattedData;
 
-	// Update function
 	function update(transition = true) {
 		const currentYearData = filteredData[currentIndex];
 		const year = currentYearData.year;
 
-		// Update year display
 		yearLabel.text(`Year: ${year}`);
 		d3.select('#yearValue').text(year);
 		d3.select('#yearSlider').property('value', currentIndex);
 
-		// Filter data based on continent selection
 		const continentFilterValue = d3.select('#continentFilter').property('value');
 		const displayData = continentFilterValue === 'all' 
 			? currentYearData.countries 
@@ -150,13 +135,11 @@ d3.json('data/data.json').then(function(data) {
 		const circles = svg.selectAll('circle')
 			.data(displayData, d => d.country);
 
-		// Exit
 		circles.exit()
 			.transition().duration(transition ? 500 : 0)
 			.attr('r', 0)
 			.remove();
 
-		// Enter
 		const enter = circles.enter()
 			.append('circle')
 			.attr('cx', d => xScale(d.income))
@@ -183,7 +166,6 @@ d3.json('data/data.json').then(function(data) {
 					.style('opacity', 0);
 			});
 
-		// Update
 		const updateSelection = enter.merge(circles);
 		
 		if (transition) {
@@ -199,7 +181,6 @@ d3.json('data/data.json').then(function(data) {
 		}
 	}
 
-	// Play/Pause functionality
 	function togglePlayPause() {
 		isPlaying = !isPlaying;
 		d3.select('#playPause').text(isPlaying ? 'Pause' : 'Play');
@@ -215,7 +196,6 @@ d3.json('data/data.json').then(function(data) {
 		}
 	}
 
-	// Reset functionality
 	function reset() {
 		currentIndex = 0;
 		isPlaying = false;
@@ -224,7 +204,6 @@ d3.json('data/data.json').then(function(data) {
 		update(false);
 	}
 
-	// Filter functionality
 	function applyFilter() {
 		const continent = d3.select('#continentFilter').property('value');
 		if (continent === 'all') {
@@ -241,7 +220,6 @@ d3.json('data/data.json').then(function(data) {
 		update(false);
 	}
 
-	// Slider functionality
 	function handleSliderChange() {
 		currentIndex = +d3.select('#yearSlider').property('value');
 		isPlaying = false;
@@ -250,15 +228,12 @@ d3.json('data/data.json').then(function(data) {
 		update();
 	}
 
-	// Event listeners
 	d3.select('#playPause').on('click', togglePlayPause);
 	d3.select('#reset').on('click', reset);
 	d3.select('#continentFilter').on('change', applyFilter);
 	d3.select('#yearSlider').on('input', handleSliderChange);
 
-	// Initialize slider max value
 	d3.select('#yearSlider').attr('max', formattedData.length - 1);
 
-	// Initial update
 	update(false);
 });

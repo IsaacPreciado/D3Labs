@@ -35,7 +35,7 @@ function update(data) {
     yAxisGroup.call(d3.axisLeft(y));
 
     var bars = g.selectAll("rect")
-        .data(data, (d) => d.month); // Add key function for smooth transitions
+        .data(data, (d) => d.month);
 
     bars.exit().remove();
 
@@ -64,7 +64,7 @@ d3.json("data/revenues.json").then((data) => {
     update(data);
 
     d3.interval(() => {
-        var newData = flag ? data : data.slice(1); // Remove January when showing profit
+        var newData = flag ? data : data.slice(1);
         update(newData);
         flag = !flag;
     }, 1000);
